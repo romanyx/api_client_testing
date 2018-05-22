@@ -22,13 +22,13 @@ func SetHTTPClient(httpClient *http.Client) Option {
 }
 
 type Client struct {
-	api, secret string
+	key, secret string
 	httpClient  *http.Client
 }
 
-func NewClient(api, secret string, options ...Option) *Client {
+func NewClient(key, secret string, options ...Option) *Client {
 	cli := Client{
-		api:    api,
+		key:    key,
 		secret: secret,
 		httpClient: &http.Client{
 			Timeout: time.Second,
@@ -52,6 +52,8 @@ func (cli *Client) GetUsers() ([]User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to build request")
 	}
+	req.Header.Set("Key", cli.key)
+	req.Header.Set("Secret", cli.secret)
 
 	resp, err := cli.httpClient.Do(req)
 	if err != nil {

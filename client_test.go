@@ -1,6 +1,7 @@
 package example
 
 import (
+	"context"
 	"crypto/tls"
 	"net"
 	"net/http"
@@ -22,12 +23,14 @@ const (
 
 func TestClientGetUsers(t *testing.T) {
 	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "key", r.Header.Get("Key"))
+		assert.Equal(t, "secret", r.Header.Get("Secret"))
 		w.Write([]byte(okResponse))
 	})
 	httpClient, teardown := testingHTTPClient(h)
 	defer teardown()
 
-	cli := NewClient("", "")
+	cli := NewClient("key", "secret")
 	cli.httpClient = httpClient
 
 	users, err := cli.GetUsers()
@@ -41,7 +44,7 @@ func testingHTTPClient(handler http.Handler) (*http.Client, func()) {
 
 	cli := &http.Client{
 		Transport: &http.Transport{
-			Dial: func(network, addr string) (net.Conn, error) {
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("tcp", s.URL[strings.LastIndex(s.URL, "/")+1:])
 			},
 			TLSClientConfig: &tls.Config{
