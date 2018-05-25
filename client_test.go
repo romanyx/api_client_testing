@@ -44,8 +44,8 @@ func testingHTTPClient(handler http.Handler) (*http.Client, func()) {
 
 	cli := &http.Client{
 		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("tcp", s.URL[strings.LastIndex(s.URL, "/")+1:])
+			DialContext: func(_ context.Context, network, _ string) (net.Conn, error) {
+				return net.Dial(network, s.Listener.Addr().String())
 			},
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
@@ -53,7 +53,5 @@ func testingHTTPClient(handler http.Handler) (*http.Client, func()) {
 		},
 	}
 
-	return cli, func() {
-		s.Close()
-	}
+	return cli, s.Close
 }
